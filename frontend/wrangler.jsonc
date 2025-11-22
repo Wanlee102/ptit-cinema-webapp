@@ -1,0 +1,15 @@
+{
+  "name": "ptit-cinema",
+  "pages_build_output_dir": "./dist",
+  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_date": "2025-01-01"
+  // "vars": {
+  //   "VITE_GOOGLE_CLIENT_ID": "28352852538-0em9vaqm5u28qqju5pq6hol4pqhjk1dg.apps.googleusercontent.com",
+  //   "VITE_BASE_URL": "https://aicademy.org",
+  //   "VITE_API_URL": "https://api-icetea.aicademy.org",
+  //   "VITE_LLM_URL": "https://chat-beta.aicademy.org",
+  //   "VITE_UPLOAD_URL": "https://worker-files.aicademy.org",
+  //   "VITE_IMAGE_URL": "https://files.aicademy.org",
+  //   "VITE_WEBSOCKET_URL": "wss://chat-beta.aicademy.org"
+  // }
+}
