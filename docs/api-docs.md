@@ -1,109 +1,241 @@
-# PROJECT SPECIFICATION: SINGLE CINEMA MANAGEMENT SYSTEM
+# PTIT Cinema API Documentation
 
-**Phiên bản:** 1.1 (Single Cinema - Pay at Counter)
-**Mục tiêu:** Xây dựng hệ thống đặt vé xem phim online cho một rạp duy nhất.
----
+This document outlines the API endpoints used in the PTIT Cinema Web Application.
 
-## 1. TỔNG QUAN (OVERVIEW)
+## Base URL
+`http://localhost:8080/api/v1` (Example)
 
-Hệ thống phục vụ cho một rạp chiếu phim duy nhất. Khách hàng xem lịch chiếu và đặt vé online.
-**Cơ chế thanh toán:** Hệ thống mặc định phương thức **"Thanh toán tại quầy"**. Khách hàng đặt vé thành công sẽ nhận được mã vé, sau đó đến quầy thanh toán tiền mặt để nhận vé vào rạp.
+## Authentication
 
-### 1.1. Các Actor (Người dùng)
-1.  **Guest (Khách vãng lai):** Xem phim, xem lịch, đăng ký/đăng nhập.
-2.  **Customer (Khách thành viên):** Đặt vé (giữ chỗ), xem lịch sử đặt vé.
-3.  **Manager (Quản lý):** Quản lý phim, phòng, suất chiếu, xem báo cáo, CRUD cho Customer(Tính sau)
+### Login
+*   **Endpoint:** `/auth/login`
+*   **Method:** `POST`
+*   **Description:** Authenticates a user and returns access tokens.
+*   **Request Body:**
+    ```json
+    {
+      "usernameOrEmail": "user123",
+      "password": "password123"
+    }
+    ```
+*   **Response (200 OK):**
+    ```json
+    {
+      "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+      "user": {
+        "id": 1,
+        "username": "user123",
+        "email": "user@example.com",
+        "fullName": "John Doe",
+        "phone": "0123456789",
+        "roles": ["CUSTOMER"]
+      }
+    }
+    ```
 
----
+### Register
+*   **Endpoint:** `/auth/register`
+*   **Method:** `POST`
+*   **Description:** Registers a new user.
+*   **Request Body:**
+    ```json
+    {
+      "username": "newuser",
+      "email": "new@example.com",
+      "password": "password123",
+      "fullName": "New User",
+      "phone": "0987654321"
+    }
+    ```
+*   **Response (200 OK):**
+    ```json
+    {
+      "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+      "user": {
+        "id": 2,
+        "username": "newuser",
+        "email": "new@example.com",
+        "fullName": "New User",
+        "phone": "0987654321",
+        "roles": ["CUSTOMER"]
+      }
+    }
+    ```
 
-## 2. DATABASE SCHEMA (ENTITY RELATIONSHIP)
+### Get Current User Profile
+*   **Endpoint:** `/users/me`
+*   **Method:** `GET`
+*   **Description:** Retrieves the profile of the currently authenticated user.
+*   **Headers:** `Authorization: Bearer <accessToken>`
+*   **Response (200 OK):**
+    ```json
+    {
+      "id": 1,
+      "username": "user123",
+      "email": "user@example.com",
+      "fullName": "John Doe",
+      "phone": "0123456789",
+      "roles": ["CUSTOMER"]
+    }
+    ```
 
-| Entity | Mô tả & Các trường chính |
-| :--- | :--- |
-| **User** | `id`, `email`, `password` (hash), `full_name`, `phone`, `role` (ADMIN/CUSTOMER). |
-| **Room** | `id`, `name` (VD: Phòng 1, Phòng IMAX), `total_seats`. |
-| **Seat** | `id`, `room_id`, `row_name` (A,B..), `col_index` (1,2..), `type` (VIP/Normal). |
-| **Movie** | `id`, `title`, `description`, `duration` (minutes), `release_date`, `poster_url`, `status` (SHOWING/COMING). // có thể nhiều field hơn |
-| **Showtime** | `id`, `movie_id`, `room_id`, `start_time`, `end_time`, `price`. |
-| **Booking** | `id`, `user_id`, `showtime_id`, `booking_time`, `total_price`, `qr_code`.<br>**Note:** Mặc định `payment_method` = "COUNTER". |
-| **Ticket** | `id`, `booking_id`, `seat_id`. |
+## Movies
 
----
+### Get All Movies
+*   **Endpoint:** `/movies`
+*   **Method:** `GET`
+*   **Description:** Retrieves a list of all movies.
+*   **Response (200 OK):**
+    ```json
+    [
+      {
+        "id": 1,
+        "title": "Dune: Part Two",
+        "genre": "Sci-Fi, Adventure",
+        "rating": 8.8,
+        "poster": "https://image.tmdb.org/t/p/w500/...",
+        "duration": "2h 46m",
+        "releaseDate": "March 1, 2024"
+      },
+      // ...
+    ]
+    ```
 
-## 3. FUNCTIONAL REQUIREMENTS (CHI TIẾT CHỨC NĂNG)
+### Get Movie Details
+*   **Endpoint:** `/movies/{id}`
+*   **Method:** `GET`
+*   **Description:** Retrieves detailed information about a specific movie.
+*   **Response (200 OK):**
+    ```json
+    {
+      "id": 1,
+      "title": "Dune: Part Two",
+      "genre": "Sci-Fi, Adventure",
+      "rating": 8.8,
+      "poster": "https://image.tmdb.org/t/p/w500/...",
+      "backdrop": "https://image.tmdb.org/t/p/original/...",
+      "duration": "2h 46m",
+      "releaseDate": "March 1, 2024",
+      "synopsis": "Paul Atreides unites with Chani...",
+      "director": "Denis Villeneuve",
+      "cast": ["Timothée Chalamet", "Zendaya"],
+      "trailerUrl": "https://www.youtube.com/embed/..."
+    }
+    ```
 
-### Module 1: Authentication (Xác thực)
-* **AUTH-01:** Đăng ký/Đăng nhập/Phân quyền (Admin/Customer).
+## Cinemas & Showtimes
 
-### Module 2: Quản lý Phòng & Phim (Dành cho Manager)
-* **MOV-01:** CRUD Phim (Thêm/Sửa/Xóa phim).
-* **ROM-01:** Quản lý danh sách Phòng chiếu (Tên phòng, số ghế).
-* **ROM-02:** Thiết lập sơ đồ ghế cho phòng (Matrix hàng/cột).
+### Get Showtimes by Movie
+*   **Endpoint:** `/showtimes`
+*   **Method:** `GET`
+*   **Query Parameters:** `movieId={id}`
+*   **Description:** Retrieves showtimes for a specific movie.
+*   **Response (200 OK):**
+    ```json
+    [
+      {
+        "id": 1,
+        "movieId": 1,
+        "cinemaId": 1,
+        "cinema": {
+          "id": 1,
+          "name": "PTIT Cinema Central",
+          "location": "Hanoi Center"
+        },
+        "date": "2024-11-23",
+        "times": ["10:00", "13:30", "17:00", "20:30"],
+        "price": 120000,
+        "roomId": 1
+      }
+    ]
+    ```
 
-### Module 3: Quản lý Lịch chiếu (Showtime)
-* **SCH-01:** Tạo suất chiếu (Chọn Phim + Phòng + Thời gian).
-* **SCH-02: Check trùng lịch.**
-    * *Rule:* Không được xếp 2 suất chiếu chồng giờ nhau trong cùng 1 phòng.
+### Get Seat Map
+*   **Endpoint:** `/rooms/{roomId}/seats`
+*   **Method:** `GET`
+*   **Description:** Retrieves the seat map for a specific room.
+*   **Response (200 OK):**
+    ```json
+    {
+      "roomId": 1,
+      "rows": 8,
+      "seatsPerRow": 12,
+      "seats": [
+        {
+          "id": "A1",
+          "row": "A",
+          "number": 1,
+          "type": "standard", // optional
+          "status": "available",
+          "price": 100000
+        },
+        // ...
+      ]
+    }
+    ```
 
-### Module 4: Booking (Đặt vé - Pay at Counter)
-Đây là luồng chính.
+## Bookings
 
-#### 4.1. Luồng nghiệp vụ
-1.  **Search:** Khách chọn Phim -> Chọn Ngày -> Ra danh sách Suất chiếu. **.
-2.  **Select Seat:**
-    * Hiển thị Sơ đồ ghế.
-    * Ghế đã bán/đã giữ: Disable.
-    * Ghế trống: Cho phép chọn.
-3.  **Confirm:**
-    * Khách bấm "Đặt vé".
-    * Hệ thống hiển thị Modal xác nhận: **"Bạn chọn thanh toán tại quầy. Vui lòng đến trước giờ chiếu 15 phút để lấy vé."**
-    * Khách bấm "Đồng ý" -> Lưu Booking.
-4.  **Result:**
-    * Hiển thị Mã vé (QR Code) và trạng thái **"Chờ thanh toán"**.
+### Create Booking
+*   **Endpoint:** `/bookings`
+*   **Method:** `POST`
+*   **Description:** Creates a new booking.
+*   **Headers:** `Authorization: Bearer <accessToken>`
+*   **Request Body:**
+    ```json
+    {
+      "movieId": 1,
+      "showtimeId": 1,
+      "cinemaName": "PTIT Cinema Central",
+      "movieTitle": "Dune: Part Two",
+      "date": "2024-11-23",
+      "time": "10:00",
+      "seats": ["A1", "A2"],
+      "totalPrice": 200000,
+      "status": "confirmed"
+    }
+    ```
+*   **Response (201 Created):**
+    ```json
+    {
+      "id": "BK1716...",
+      "userId": 1,
+      "movieId": 1,
+      "showtimeId": 1,
+      "cinemaName": "PTIT Cinema Central",
+      "movieTitle": "Dune: Part Two",
+      "date": "2024-11-23",
+      "time": "10:00",
+      "seats": ["A1", "A2"],
+      "totalPrice": 200000,
+      "status": "confirmed",
+      "createdAt": "2024-11-23T10:00:00Z",
+      "qrCode": "PTIT_CINEMA_BK1716..."
+    }
+    ```
 
-#### 4.2. Validation
-* **Race Condition:** Chặn trường hợp 2 người cùng chọn 1 ghế.
-
-### Module 5: User Profile
-* **USR-01:** Xem lịch sử. Các vé sẽ có trạng thái "Pay at Counter".
-
----
-
-## 4. API SPECIFICATION (Suggestion)
-
-### 4.1. Public APIs
-* `GET /api/movies?search=...`: Lấy danh sách phim đang chiếu.
-* `GET /api/showtimes?date=...`: Lấy lịch chiếu theo ngày.
-* `GET /api/showtimes/{id}/seats`: Lấy sơ đồ ghế.
-
-### 4.2. Protected APIs (Cần Token)
-* `POST /api/bookings`: Đặt vé.
-* `GET /api/my-bookings`: Lấy lịch sử vé.
-
-### 4.3. Admin APIs
-* `POST /api/movies`: Thêm phim.
-* `POST /api/rooms`: Thêm phòng.
-* `POST /api/showtimes`: Tạo lịch chiếu.
-
-// api có thể nhiều hơn
----
-
-## 5. UI/UX GUIDELINE
-
-### Màn hình 1: Trang chủ
-* List phim đang chiếu. Bấm vào phim -> Nhảy sang trang chi tiết & chọn suất luôn.
-
-### Màn hình 2: Đặt vé (Booking Flow)
-* **Bước 1: Chọn suất.** Chỉ cần filter theo Ngày.
-* **Bước 2: Chọn ghế.**
-    * Grid ghế.
-    * Tổng tiền tạm tính.
-* **Bước 3: Xác nhận.**
-    * Button action: **"Đặt vé (Trả sau tại quầy)"**.
-
----
-
-## 6. GHI CHÚ KỸ THUẬT
-
-* **Format tiền tệ:** VNĐ (Ví dụ: 80.000 đ), có dấu chấm phân cách hàng nghìn.
-* **Format ngày giờ:** `dd/MM/yyyy HH:mm`.
+### Get User Bookings
+*   **Endpoint:** `/bookings/my-bookings`
+*   **Method:** `GET`
+*   **Description:** Retrieves all bookings for the authenticated user.
+*   **Headers:** `Authorization: Bearer <accessToken>`
+*   **Response (200 OK):**
+    ```json
+    [
+      {
+        "id": "BK1716...",
+        "userId": 1,
+        "movieId": 1,
+        "showtimeId": 1,
+        "cinemaName": "PTIT Cinema Central",
+        "movieTitle": "Dune: Part Two",
+        "date": "2024-11-23",
+        "time": "10:00",
+        "seats": ["A1", "A2"],
+        "totalPrice": 200000,
+        "status": "confirmed",
+        "createdAt": "2024-11-23T10:00:00Z",
+        "qrCode": "PTIT_CINEMA_BK1716..."
+      }
+    ]
+    ```

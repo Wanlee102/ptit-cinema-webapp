@@ -14,7 +14,7 @@ Hệ thống phục vụ cho một rạp chiếu phim duy nhất. Khách hàng x
 ### 1.1. Các Actor (Người dùng)
 1.  **Guest (Khách vãng lai):** Xem phim, xem lịch, đăng ký/đăng nhập.
 2.  **Customer (Khách thành viên):** Đặt vé (giữ chỗ), xem lịch sử đặt vé.
-3.  **Manager (Quản lý):** Quản lý phim, phòng, suất chiếu, xem báo cáo.
+3.  **Manager (Quản lý):** Quản lý phim, phòng, suất chiếu, xem báo cáo, user?( tính sau ).
 
 ---
 
@@ -88,23 +88,6 @@ Hệ thống phục vụ cho một rạp chiếu phim duy nhất. Khách hàng x
 * `POST /api/showtimes`: Tạo lịch chiếu.
 
 // api có thể nhiều hơn
----
-
-## 5. UI/UX GUIDELINE
-
-### Màn hình 1: Trang chủ
-* List phim đang chiếu. Bấm vào phim -> Nhảy sang trang chi tiết & chọn suất luôn.
-
-### Màn hình 2: Đặt vé (Booking Flow)
-* **Bước 1: Chọn suất.** Chỉ cần filter theo Ngày.
-* **Bước 2: Chọn ghế.**
-    * Grid ghế.
-    * Tổng tiền tạm tính.
-* **Bước 3: Xác nhận.**
-    * Button action: **"Đặt vé (Trả sau tại quầy)"**.
-
----
-
 
 ## 6. GHI CHÚ KỸ THUẬT
 
