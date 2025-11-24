@@ -2,28 +2,12 @@ import { AuthResponse, LoginRequest, RegisterRequest, User } from '../types/auth
 
 const STORAGE_KEY_USERS = 'mock_users';
 
-const DEFAULT_MANAGER: User = {
-  id: 1,
-  username: 'manager',
-  email: 'manager@ptit-cinema.com',
-  fullName: 'Cinema Manager',
-  phone: '0913451683',
-  roles: ['MANAGER', 'ADMIN'],
-};
-
-// Helper simulate network delay
+// Helper to simulate network delay
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const getMockUsers = (): User[] => {
-  const raw = localStorage.getItem(STORAGE_KEY_USERS);
-  let users: User[] = raw ? JSON.parse(raw) : [];
-
-  if (!users.some((u) => u.username === DEFAULT_MANAGER.username)) {
-    users = [DEFAULT_MANAGER, ...users];
-    localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
-  }
-
-  return users;
+  const users = localStorage.getItem(STORAGE_KEY_USERS);
+  return users ? JSON.parse(users) : [];
 };
 
 const saveMockUser = (user: User) => {
@@ -35,15 +19,17 @@ const saveMockUser = (user: User) => {
 export const mockService = {
   auth: {
     login: async (credentials: LoginRequest): Promise<AuthResponse> => {
-      await delay(500);
+      await delay(500); // Simulate latency
       const users = getMockUsers();
       const user = users.find(
-        (u) =>
-          (u.username === credentials.usernameOrEmail ||
-            u.email === credentials.usernameOrEmail) &&
-          (credentials.password === '123456' || true) 
+        (u) => (u.username === credentials.usernameOrEmail || u.email === credentials.usernameOrEmail) && 
+               (credentials.password === '123456' || true) // Accept any password for now or check if we stored it (we didn't store password in User type)
       );
 
+      // In a real mock, we should store passwords. But User type doesn't have password.
+      // Let's just assume if user exists, login success for this simple mock.
+      // Or better, let's check against a hardcoded admin or the registered users.
+      
       if (!user) {
         throw new Error('Invalid credentials');
       }
@@ -82,15 +68,19 @@ export const mockService = {
 
     getProfile: async (): Promise<User> => {
       await delay(300);
+      // In a real app, we'd parse the token. Here we just return the last user from storage or a dummy.
+      // But wait, useAuthStore (Jotai) already has the user. 
+      // This endpoint is usually called to refresh the user data.
+      // Let's return the first user found in LS or a default one.
       const users = getMockUsers();
-      if (users.length > 0) return users[users.length - 1];
-
+      if (users.length > 0) return users[users.length - 1]; // Return the most recently created user
+      
       throw new Error('User not found');
-    },
+    }
   },
   // Placeholders for future mocks
   cinema: {},
   movie: {},
   showtime: {},
-  booking: {},
+  booking: {}
 };
