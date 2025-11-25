@@ -59,7 +59,6 @@ public class UserRepository  implements IUserRepository {
             return null;
         }
     }
-
     @Override
     public User save(User user){
         String sql = "INSERT INTO [User] (Username, Email, Password, FullName, Phone) VALUES (?, ?, ?, ?, ?)";

@@ -13,7 +13,6 @@ import java.util.Map;
 @RequestMapping("/auth")
 public class AuthController {
     private IUserService userServ;
-
     @Autowired
     public void setMovieServ(IUserService userServ){this.userServ = userServ;}
 
